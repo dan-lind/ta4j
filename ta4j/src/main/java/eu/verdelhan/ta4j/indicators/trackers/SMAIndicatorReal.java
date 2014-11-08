@@ -20,54 +20,41 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package eu.verdelhan.ta4j.indicators;
+package eu.verdelhan.ta4j.indicators.trackers;
 
 import eu.verdelhan.ta4j.Indicator;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import eu.verdelhan.ta4j.indicators.CachedIndicator;
+import org.jscience.mathematics.number.Real;
 
 /**
- * Cached {@link Indicator indicators}.
+ * Simple moving average (SMA) indicator.
  * <p>
- * Caches the constructor of the indicator. Avoid to calculate the same index of the indicator twice.
  */
-public abstract class CachedIndicator<T> implements Indicator<T> {
+public class SMAIndicatorReal extends CachedIndicator<Real> {
 
-    private List<T> results = new ArrayList<T>();
+    private final Indicator<? extends Real> indicator;
 
-    @Override
-    public T getValue(int index) {
-        increaseLength(index);
-        if (results.get(index) == null) {
-            int i = index;
-            while ((i > 0) && (results.get(i--) == null)) {
-                ;
-            }
-            for (; i <= index; i++) {
-                if (results.get(i) == null) {
-                    results.set(i, calculate(i));
-                }
-            }
-        }
-        return results.get(index);
+    private final int timeFrame;
+
+    public SMAIndicatorReal(Indicator<? extends Real> indicator, int timeFrame) {
+        this.indicator = indicator;
+        this.timeFrame = timeFrame;
     }
 
-    protected abstract T calculate(int index);
+    @Override
+    protected Real calculate(int index) {
+        Real sum = Real.ZERO;
+        for (int i = Math.max(0, index - timeFrame + 1); i <= index; i++) {
+            sum = sum.plus(indicator.getValue(i));
+        }
+
+        final int realTimeFrame = Math.min(timeFrame, index + 1);
+        return sum.divide(Real.valueOf(realTimeFrame));
+    }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName();
+        return getClass().getSimpleName() + " timeFrame: " + timeFrame;
     }
 
-    /**
-     * Increases the size of cached results buffer.
-     * @param index
-     */
-    private void increaseLength(int index) {
-        if (results.size() <= index) {
-            results.addAll(Collections.<T> nCopies((index - results.size()) + 1, null));
-        }
-    }
 }
