@@ -56,8 +56,14 @@ public class EMAIndicatorReal extends CachedIndicator<Real> {
             return indicator.getValue(0);
         }
         Real emaPrev = getValue(index - 1);
+<<<<<<< HEAD
         System.out.println(emaPrev);
         return indicator.getValue(index).minus(emaPrev).times(multiplier()).plus(emaPrev);
+=======
+        Real test = indicator.getValue(index).minus(emaPrev).times(multiplier()).plus(emaPrev);
+        System.out.println(test);
+        return test;
+>>>>>>> 64ae5163fcd05ce4efa0e6b646809f69d759e67f
     }
 
     @Override

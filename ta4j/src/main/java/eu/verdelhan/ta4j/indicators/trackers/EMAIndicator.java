@@ -42,7 +42,8 @@ public class EMAIndicator extends CachedIndicator<TADecimal> {
     }
 
     private TADecimal multiplier() {
-        return TADecimal.TWO.dividedBy(TADecimal.valueOf(timeFrame + 1));
+        TADecimal test = TADecimal.THREE.dividedBy(TADecimal.valueOf(timeFrame + 1));
+        return test;
     }
 
 
@@ -55,7 +56,9 @@ public class EMAIndicator extends CachedIndicator<TADecimal> {
             return indicator.getValue(0);
         }
         TADecimal emaPrev = getValue(index - 1);
-        return indicator.getValue(index).minus(emaPrev).multipliedBy(multiplier()).plus(emaPrev);
+        TADecimal test = indicator.getValue(index).minus(emaPrev).multipliedBy(multiplier()).plus(emaPrev);
+//        System.out.format("Index value: %s, emaPrev: %s, multiplier: %s, result: %s%n",indicator.getValue(index),emaPrev, multiplier(),test);
+        return test;
     }
 
     @Override
