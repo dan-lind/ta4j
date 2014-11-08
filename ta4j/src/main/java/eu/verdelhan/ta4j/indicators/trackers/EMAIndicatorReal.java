@@ -20,54 +20,49 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package eu.verdelhan.ta4j.indicators;
+package eu.verdelhan.ta4j.indicators.trackers;
 
 import eu.verdelhan.ta4j.Indicator;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import eu.verdelhan.ta4j.indicators.CachedIndicator;
+import org.jscience.mathematics.number.Real;
 
 /**
- * Cached {@link Indicator indicators}.
+ * Exponential moving average indicator.
  * <p>
- * Caches the constructor of the indicator. Avoid to calculate the same index of the indicator twice.
  */
-public abstract class CachedIndicator<T> implements Indicator<T> {
+public class EMAIndicatorReal extends CachedIndicator<Real> {
 
-    private List<T> results = new ArrayList<T>();
+    private final Indicator<? extends Real> indicator;
 
-    @Override
-    public T getValue(int index) {
-        increaseLength(index);
-        if (results.get(index) == null) {
-            int i = index;
-            while ((i > 0) && (results.get(i--) == null)) {
-                ;
-            }
-            for (; i <= index; i++) {
-                if (results.get(i) == null) {
-                    results.set(i, calculate(i));
-                }
-            }
-        }
-        return results.get(index);
+    private final int timeFrame;
+
+    public EMAIndicatorReal(Indicator<? extends Real> indicator, int timeFrame) {
+        this.indicator = indicator;
+        this.timeFrame = timeFrame;
     }
 
-    protected abstract T calculate(int index);
+    private Real multiplier() {
+        Real test = Real.valueOf(2).divide(Real.valueOf(timeFrame + 1));
+        return test;
+    }
+
+
+    @Override
+    protected Real calculate(int index) {
+        if (index + 1 < timeFrame) {
+            return new SMAIndicatorReal(indicator, timeFrame).getValue(index);
+        }
+        if(index == 0) {
+            return indicator.getValue(0);
+        }
+        Real emaPrev = getValue(index - 1);
+        Real test = indicator.getValue(index).minus(emaPrev).times(multiplier()).plus(emaPrev);
+        System.out.println(test);
+        return test;
+    }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName();
-    }
-
-    /**
-     * Increases the size of cached results buffer.
-     * @param index
-     */
-    private void increaseLength(int index) {
-        if (results.size() <= index) {
-            results.addAll(Collections.<T> nCopies((index - results.size()) + 1, null));
-        }
+        return getClass().getSimpleName() + " timeFrame: " + timeFrame;
     }
 }

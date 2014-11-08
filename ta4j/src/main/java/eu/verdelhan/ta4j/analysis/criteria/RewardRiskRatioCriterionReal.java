@@ -20,54 +20,40 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package eu.verdelhan.ta4j.indicators;
+package eu.verdelhan.ta4j.analysis.criteria;
 
-import eu.verdelhan.ta4j.Indicator;
+import eu.verdelhan.ta4j.AnalysisCriterionReal;
+import eu.verdelhan.ta4j.TimeSeriesReal;
+import eu.verdelhan.ta4j.Trade;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Cached {@link Indicator indicators}.
+ * Reward risk ratio criterion.
  * <p>
- * Caches the constructor of the indicator. Avoid to calculate the same index of the indicator twice.
+ * (i.e. the {@link eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterion total profit} over the {@link eu.verdelhan.ta4j.analysis.criteria.MaximumDrawdownCriterion maximum drawdown}.
  */
-public abstract class CachedIndicator<T> implements Indicator<T> {
+public class RewardRiskRatioCriterionReal extends AbstractAnalysisCriterionReal {
 
-    private List<T> results = new ArrayList<T>();
+    private AnalysisCriterionReal totalProfit = new TotalProfitCriterionReal();
 
-    @Override
-    public T getValue(int index) {
-        increaseLength(index);
-        if (results.get(index) == null) {
-            int i = index;
-            while ((i > 0) && (results.get(i--) == null)) {
-                ;
-            }
-            for (; i <= index; i++) {
-                if (results.get(i) == null) {
-                    results.set(i, calculate(i));
-                }
-            }
-        }
-        return results.get(index);
-    }
-
-    protected abstract T calculate(int index);
+    private AnalysisCriterionReal maxDrawdown = new MaximumDrawdownCriterionReal();
 
     @Override
-    public String toString() {
-        return getClass().getSimpleName();
+    public double calculate(TimeSeriesReal series, List<Trade> trades) {
+        return totalProfit.calculate(series, trades) / (maxDrawdown.calculate(series, trades));
     }
 
-    /**
-     * Increases the size of cached results buffer.
-     * @param index
-     */
-    private void increaseLength(int index) {
-        if (results.size() <= index) {
-            results.addAll(Collections.<T> nCopies((index - results.size()) + 1, null));
-        }
+    @Override
+    public boolean betterThan(double criterionValue1, double criterionValue2) {
+        return criterionValue1 > criterionValue2;
+    }
+
+    @Override
+    public double calculate(TimeSeriesReal series, Trade trade) {
+        List<Trade> trades = new ArrayList<Trade>();
+        trades.add(trade);
+        return calculate(series, trades);
     }
 }

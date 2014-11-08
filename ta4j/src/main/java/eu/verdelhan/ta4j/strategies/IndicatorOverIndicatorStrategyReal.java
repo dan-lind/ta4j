@@ -20,49 +20,46 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package eu.verdelhan.ta4j.indicators.trackers;
+package eu.verdelhan.ta4j.strategies;
 
 import eu.verdelhan.ta4j.Indicator;
-import eu.verdelhan.ta4j.TADecimal;
-import eu.verdelhan.ta4j.indicators.CachedIndicator;
+import org.jscience.mathematics.number.Real;
 
 /**
- * Exponential moving average indicator.
+ * Indicator over indicator strategy.
  * <p>
+ * Enter: when the value of the first {@link eu.verdelhan.ta4j.Indicator indicator} is strictly greater than the value of the second one<br>
+ * Exit: when the value of the first {@link eu.verdelhan.ta4j.Indicator indicator} is strictly lesser than the value of the second one
  */
-public class EMAIndicator extends CachedIndicator<TADecimal> {
+public class IndicatorOverIndicatorStrategyReal extends AbstractStrategy {
 
-    private final Indicator<? extends TADecimal> indicator;
+    /** The first indicator */
+    private Indicator<Real> first;
+    /** The second indicator */
+    private Indicator<Real> second;
 
-    private final int timeFrame;
-
-    public EMAIndicator(Indicator<? extends TADecimal> indicator, int timeFrame) {
-        this.indicator = indicator;
-        this.timeFrame = timeFrame;
+    /**
+     * Constructor.
+     * @param first the first indicator
+     * @param second the second indicator
+     */
+    public IndicatorOverIndicatorStrategyReal(Indicator<Real> first, Indicator<Real> second) {
+        this.first = first;
+        this.second = second;
     }
-
-    private TADecimal multiplier() {
-        TADecimal test = TADecimal.THREE.dividedBy(TADecimal.valueOf(timeFrame + 1));
-        return test;
-    }
-
 
     @Override
-    protected TADecimal calculate(int index) {
-        if (index + 1 < timeFrame) {
-            return new SMAIndicator(indicator, timeFrame).getValue(index);
-        }
-        if(index == 0) {
-            return indicator.getValue(0);
-        }
-        TADecimal emaPrev = getValue(index - 1);
-        TADecimal test = indicator.getValue(index).minus(emaPrev).multipliedBy(multiplier()).plus(emaPrev);
-//        System.out.format("Index value: %s, emaPrev: %s, multiplier: %s, result: %s%n",indicator.getValue(index),emaPrev, multiplier(),test);
-        return test;
+    public boolean shouldEnter(int index) {
+        return first.getValue(index).isGreaterThan(second.getValue(index));
+    }
+
+    @Override
+    public boolean shouldExit(int index) {
+        return first.getValue(index).isLessThan(second.getValue(index));
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " timeFrame: " + timeFrame;
+        return String.format("%s : %s over %s", this.getClass().getSimpleName(), first, second);
     }
 }

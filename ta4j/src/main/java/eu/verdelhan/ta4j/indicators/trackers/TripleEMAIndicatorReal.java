@@ -23,46 +23,30 @@
 package eu.verdelhan.ta4j.indicators.trackers;
 
 import eu.verdelhan.ta4j.Indicator;
-import eu.verdelhan.ta4j.TADecimal;
 import eu.verdelhan.ta4j.indicators.CachedIndicator;
+import org.jscience.mathematics.number.Real;
 
 /**
- * Exponential moving average indicator.
+ * Triple exponential moving average indicator.
  * <p>
+ * a.k.a TRIX
  */
-public class EMAIndicator extends CachedIndicator<TADecimal> {
-
-    private final Indicator<? extends TADecimal> indicator;
+public class TripleEMAIndicatorReal extends CachedIndicator<Real> {
 
     private final int timeFrame;
 
-    public EMAIndicator(Indicator<? extends TADecimal> indicator, int timeFrame) {
-        this.indicator = indicator;
+    private final EMAIndicatorReal ema;
+
+    public TripleEMAIndicatorReal(Indicator<? extends Real> indicator, int timeFrame) {
         this.timeFrame = timeFrame;
-    }
-
-    private TADecimal multiplier() {
-        TADecimal test = TADecimal.THREE.dividedBy(TADecimal.valueOf(timeFrame + 1));
-        return test;
-    }
-
-
-    @Override
-    protected TADecimal calculate(int index) {
-        if (index + 1 < timeFrame) {
-            return new SMAIndicator(indicator, timeFrame).getValue(index);
-        }
-        if(index == 0) {
-            return indicator.getValue(0);
-        }
-        TADecimal emaPrev = getValue(index - 1);
-        TADecimal test = indicator.getValue(index).minus(emaPrev).multipliedBy(multiplier()).plus(emaPrev);
-//        System.out.format("Index value: %s, emaPrev: %s, multiplier: %s, result: %s%n",indicator.getValue(index),emaPrev, multiplier(),test);
-        return test;
+        this.ema = new EMAIndicatorReal(indicator, timeFrame);
     }
 
     @Override
-    public String toString() {
-        return getClass().getSimpleName() + " timeFrame: " + timeFrame;
+    protected Real calculate(int index) {
+        EMAIndicatorReal emaEma = new EMAIndicatorReal(ema, timeFrame);
+        EMAIndicatorReal emaEmaEma = new EMAIndicatorReal(emaEma, timeFrame);
+        Real test = Real.valueOf(3).times(ema.getValue(index).minus(emaEma.getValue(index))).plus(emaEmaEma.getValue(index));
+        return test;
     }
 }
