@@ -22,52 +22,55 @@
  */
 package eu.verdelhan.ta4j.analysis.criteria;
 
-import eu.verdelhan.ta4j.TimeSeriesReal;
-import eu.verdelhan.ta4j.Trade;
-import eu.verdelhan.ta4j.analysis.CashFlowReal;
-import org.jscience.mathematics.number.Real;
+import eu.verdelhan.ta4j.*;
+import org.apfloat.Apfloat;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Maximum drawdown criterion.
+ * Total profit criterion.
  * <p>
- * @see <a href="http://en.wikipedia.org/wiki/Drawdown_%28economics%29">http://en.wikipedia.org/wiki/Drawdown_%28economics%29</a>
+ * The total profit of the provided {@link eu.verdelhan.ta4j.Trade trade(s)} over the provided {@link eu.verdelhan.ta4j.TimeSeries series}.
  */
-public class MaximumDrawdownCriterionReal extends AbstractAnalysisCriterionReal {
+public class TotalProfitCriterionFloat extends AbstractAnalysisCriterionFloat {
 
     @Override
-    public double calculate(TimeSeriesReal series, List<Trade> trades) {
-        Real maximumDrawdown = Real.ZERO;
-        Real maxPeak = Real.ZERO;
-        CashFlowReal cashFlow = new CashFlowReal(series, trades);
-
-        for (int i = series.getBegin(); i <= series.getEnd(); i++) {
-            Real value = cashFlow.getValue(i);
-            if (value.isGreaterThan(maxPeak)) {
-                maxPeak = value;
-            }
-
-            Real drawdown = maxPeak.minus(value).divide(maxPeak);
-            if (drawdown.isGreaterThan(maximumDrawdown)) {
-                maximumDrawdown = drawdown;
-                // absolute maximumDrawdown.
-                // should it be maximumDrawdown = drawDown/maxPeak ?
-            }
+    public double calculate(TimeSeriesFloat series, List<Trade> trades) {
+        double value = 1d;
+        for (Trade trade : trades) {
+            value *= calculateProfit(series, trade);
         }
-        return maximumDrawdown.doubleValue();
+        return value;
     }
 
     @Override
-    public double calculate(TimeSeriesReal series, Trade trade) {
-        List<Trade> trades = new ArrayList<Trade>();
-        trades.add(trade);
-        return calculate(series, trades);
+    public double calculate(TimeSeriesFloat series, Trade trade) {
+        return calculateProfit(series, trade);
     }
 
     @Override
     public boolean betterThan(double criterionValue1, double criterionValue2) {
         return criterionValue1 > criterionValue2;
+    }
+
+    /**
+     * Calculates the profit of a trade (Buy and sell).
+     * @param series a time series
+     * @param trade a trade
+     * @return the profit of the trade
+     */
+    private double calculateProfit(TimeSeriesFloat series, Trade trade) {
+        Apfloat profit = Apfloat.ONE;
+        if (trade.isClosed()) {
+            Apfloat exitClosePrice = series.getTickFloat(trade.getExit().getIndex()).getClosePrice();
+            Apfloat entryClosePrice = series.getTickFloat(trade.getEntry().getIndex()).getClosePrice();
+
+            if (trade.getEntry().getType() == OperationType.BUY) {
+                profit = exitClosePrice.divide(entryClosePrice);
+            } else {
+                profit = entryClosePrice.divide(exitClosePrice);
+            }
+        }
+        return profit.doubleValue();
     }
 }

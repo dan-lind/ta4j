@@ -29,8 +29,8 @@ import eu.verdelhan.ta4j.analysis.criteria.RewardRiskRatioCriterion;
 import eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterion;
 import eu.verdelhan.ta4j.analysis.criteria.VersusBuyAndHoldCriterion;
 import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
-import eu.verdelhan.ta4j.indicators.trackers.EMAIndicator;
 import eu.verdelhan.ta4j.indicators.trackers.SMAIndicator;
+import eu.verdelhan.ta4j.indicators.trackers.TripleEMAIndicator;
 import eu.verdelhan.ta4j.strategies.IndicatorOverIndicatorStrategy;
 import ta4jexamples.loaders.CsvTradesLoader;
 
@@ -61,7 +61,7 @@ public class QuickstartTADecimal {
         System.out.println(firstClosePrice.equals(closePrice.getValue(0))); // equal to firstClosePrice
 
         // Getting the simple moving average (SMA) of the close price over the last 5 ticks
-        EMAIndicator shortSma = new EMAIndicator(closePrice, 5);
+        TripleEMAIndicator shortSma = new TripleEMAIndicator(closePrice, 5);
         // Here is the 5-ticks-SMA value at the 42nd index
         System.out.println("5-ticks-SMA value at the 42nd index: " + shortSma.getValue(42));
 
@@ -80,7 +80,6 @@ public class QuickstartTADecimal {
         // Running our juicy trading strategy...
         List<Trade> trades = series.run(ourStrategy);
         System.out.println("Number of trades for our strategy: " + trades.size());
-        System.out.println(trades);
 
         // Analysis
 

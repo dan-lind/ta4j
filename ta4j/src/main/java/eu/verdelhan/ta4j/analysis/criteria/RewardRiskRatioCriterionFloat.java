@@ -22,52 +22,36 @@
  */
 package eu.verdelhan.ta4j.analysis.criteria;
 
-import eu.verdelhan.ta4j.TimeSeriesReal;
-import eu.verdelhan.ta4j.Trade;
-import eu.verdelhan.ta4j.analysis.CashFlowReal;
-import org.jscience.mathematics.number.Real;
+import eu.verdelhan.ta4j.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Maximum drawdown criterion.
+ * Reward risk ratio criterion.
  * <p>
- * @see <a href="http://en.wikipedia.org/wiki/Drawdown_%28economics%29">http://en.wikipedia.org/wiki/Drawdown_%28economics%29</a>
+ * (i.e. the {@link eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterion total profit} over the {@link eu.verdelhan.ta4j.analysis.criteria.MaximumDrawdownCriterion maximum drawdown}.
  */
-public class MaximumDrawdownCriterionReal extends AbstractAnalysisCriterionReal {
+public class RewardRiskRatioCriterionFloat extends AbstractAnalysisCriterionFloat {
+
+    private AnalysisCriterionFloat totalProfit = new TotalProfitCriterionFloat();
+
+    private AnalysisCriterionFloat maxDrawdown = new MaximumDrawdownCriterionFloat();
 
     @Override
-    public double calculate(TimeSeriesReal series, List<Trade> trades) {
-        Real maximumDrawdown = Real.ZERO;
-        Real maxPeak = Real.ZERO;
-        CashFlowReal cashFlow = new CashFlowReal(series, trades);
-
-        for (int i = series.getBegin(); i <= series.getEnd(); i++) {
-            Real value = cashFlow.getValue(i);
-            if (value.isGreaterThan(maxPeak)) {
-                maxPeak = value;
-            }
-
-            Real drawdown = maxPeak.minus(value).divide(maxPeak);
-            if (drawdown.isGreaterThan(maximumDrawdown)) {
-                maximumDrawdown = drawdown;
-                // absolute maximumDrawdown.
-                // should it be maximumDrawdown = drawDown/maxPeak ?
-            }
-        }
-        return maximumDrawdown.doubleValue();
-    }
-
-    @Override
-    public double calculate(TimeSeriesReal series, Trade trade) {
-        List<Trade> trades = new ArrayList<Trade>();
-        trades.add(trade);
-        return calculate(series, trades);
+    public double calculate(TimeSeriesFloat series, List<Trade> trades) {
+        return totalProfit.calculate(series, trades) / maxDrawdown.calculate(series, trades);
     }
 
     @Override
     public boolean betterThan(double criterionValue1, double criterionValue2) {
         return criterionValue1 > criterionValue2;
+    }
+
+    @Override
+    public double calculate(TimeSeriesFloat series, Trade trade) {
+        List<Trade> trades = new ArrayList<Trade>();
+        trades.add(trade);
+        return calculate(series, trades);
     }
 }

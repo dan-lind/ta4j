@@ -20,10 +20,10 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package eu.verdelhan.ta4j.analysis.criteria;
+package eu.verdelhan.ta4j.analysis;
 
 import eu.verdelhan.ta4j.*;
-import org.jscience.mathematics.number.Real;
+import org.apfloat.Apfloat;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,26 +34,26 @@ import java.util.List;
  * <p>
  * This class allows to follow the money cash flow involved by a list of trades over a time series.
  */
-public class CashFlowReal implements Indicator<Real> {
+public class CashFlowFloat implements Indicator<Apfloat> {
 
     /** The time series */
-    private final TimeSeriesReal timeSeries;
+    private final TimeSeriesFloat timeSeries;
 
     /** The list of trades */
     private final List<Trade> trades;
 
-    private List<Real> values;
+    private List<Apfloat> values;
 
     /**
      * Constructor.
      * @param timeSeries the time series
      * @param trades the list of trades
      */
-    public CashFlowReal(TimeSeriesReal timeSeries, List<Trade> trades) {
+    public CashFlowFloat(TimeSeriesFloat timeSeries, List<Trade> trades) {
         this.timeSeries = timeSeries;
         this.trades = trades;
-        values = new ArrayList<Real>();
-        values.add(Real.ONE);
+        values = new ArrayList<Apfloat>();
+        values.add(Apfloat.ONE);
         calculate();
     }
 
@@ -62,7 +62,7 @@ public class CashFlowReal implements Indicator<Real> {
      * @return the cash flow value at the index-th position
      */
     @Override
-    public Real getValue(int index) {
+    public Apfloat getValue(int index) {
         return values.get(index);
     }
 
@@ -86,13 +86,13 @@ public class CashFlowReal implements Indicator<Real> {
             }
             int end = trade.getExit().getIndex();
             for (int i = Math.max(begin, 1); i <= end; i++) {
-                Real ratio;
+                Apfloat ratio;
                 if (trade.getEntry().getType().equals(OperationType.BUY)) {
-                    ratio = timeSeries.getTick(i).getClosePrice().divide(timeSeries.getTick(trade.getEntry().getIndex()).getClosePrice());
+                    ratio = timeSeries.getTickFloat(i).getClosePrice().divide(timeSeries.getTickFloat(trade.getEntry().getIndex()).getClosePrice());
                 } else {
-                    ratio = timeSeries.getTick(trade.getEntry().getIndex()).getClosePrice().divide(timeSeries.getTick(i).getClosePrice());
+                    ratio = timeSeries.getTickFloat(trade.getEntry().getIndex()).getClosePrice().divide(timeSeries.getTickFloat(i).getClosePrice());
                 }
-                values.add(values.get(trade.getEntry().getIndex()).times(ratio));
+                values.add(values.get(trade.getEntry().getIndex()).multiply(ratio));
             }
         }
         if ((timeSeries.getEnd() - values.size()) >= 0) {

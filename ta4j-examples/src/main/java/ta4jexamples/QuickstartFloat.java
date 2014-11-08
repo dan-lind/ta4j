@@ -22,18 +22,21 @@
  */
 package ta4jexamples;
 
-import eu.verdelhan.ta4j.AnalysisCriterionReal;
+import eu.verdelhan.ta4j.AnalysisCriterionFloat;
 import eu.verdelhan.ta4j.Strategy;
-import eu.verdelhan.ta4j.TimeSeriesReal;
+import eu.verdelhan.ta4j.TimeSeriesFloat;
 import eu.verdelhan.ta4j.Trade;
-import eu.verdelhan.ta4j.analysis.CashFlowReal;
-import eu.verdelhan.ta4j.analysis.criteria.*;
-import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicatorReal;
-import eu.verdelhan.ta4j.indicators.trackers.EMAIndicatorReal;
-import eu.verdelhan.ta4j.indicators.trackers.SMAIndicatorReal;
-import eu.verdelhan.ta4j.strategies.IndicatorOverIndicatorStrategyReal;
-import org.jscience.mathematics.number.Real;
-import ta4jexamples.loaders.CsvTradesLoaderReal;
+import eu.verdelhan.ta4j.analysis.CashFlowFloat;
+import eu.verdelhan.ta4j.analysis.criteria.AverageProfitableTradesCriterionFloat;
+import eu.verdelhan.ta4j.analysis.criteria.RewardRiskRatioCriterionFloat;
+import eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterionFloat;
+import eu.verdelhan.ta4j.analysis.criteria.VersusBuyAndHoldCriterionFloat;
+import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicatorFloat;
+import eu.verdelhan.ta4j.indicators.trackers.SMAIndicatorFloat;
+import eu.verdelhan.ta4j.indicators.trackers.TripleEMAIndicatorFloat;
+import eu.verdelhan.ta4j.strategies.IndicatorOverIndicatorStrategyFloat;
+import org.apfloat.Apfloat;
+import ta4jexamples.loaders.CsvTradesLoaderFloat;
 
 import java.util.List;
 
@@ -42,31 +45,32 @@ import java.util.List;
  * <p>
  * Global example.
  */
-public class QuickstartReal {
+public class QuickstartFloat {
 
     public static void main(String[] args) {
-        System.out.println("Running Real");
-        Real.setExactPrecision(32);
+        System.out.println("Running Apfloat");
         long time = System.currentTimeMillis();
 
+
         // Getting a time series (from any provider: CSV, web service, etc.)
-        TimeSeriesReal series = CsvTradesLoaderReal.loadBitstampSeries();
+        TimeSeriesFloat series = CsvTradesLoaderFloat.loadBitstampSeries();
+
 
         // Getting the close price of the ticks
-        Real firstClosePrice = series.getTick(0).getClosePrice();
+        Apfloat firstClosePrice = series.getTickFloat(0).getClosePrice();
         System.out.println("First close price: " + firstClosePrice);
         // Or within an indicator:
-        ClosePriceIndicatorReal closePrice = new ClosePriceIndicatorReal(series);
+        ClosePriceIndicatorFloat closePrice = new ClosePriceIndicatorFloat(series);
         // Here is the same close price:
         System.out.println(firstClosePrice.equals(closePrice.getValue(0))); // equal to firstClosePrice
 
         // Getting the simple moving average (SMA) of the close price over the last 5 ticks
-        EMAIndicatorReal shortSma = new EMAIndicatorReal(closePrice, 5);
+        TripleEMAIndicatorFloat shortSma = new TripleEMAIndicatorFloat(closePrice, 5);
         // Here is the 5-ticks-SMA value at the 42nd index
         System.out.println("5-ticks-SMA value at the 42nd index: " + shortSma.getValue(42));
 
         // Getting a longer SMA (e.g. over the 30 last ticks)
-        SMAIndicatorReal longSma = new SMAIndicatorReal(closePrice, 30);
+        SMAIndicatorFloat longSma = new SMAIndicatorFloat(closePrice, 30);
 
 
         // Ok, now let's building our trading strategy!
@@ -74,33 +78,31 @@ public class QuickstartReal {
         // Initial strategy:
         //  - Buy when 5-ticks SMA crosses over 30-ticks SMA
         //  - Sell when 5-ticks SMA crosses under 30-ticks SMA
-        Strategy ourStrategy = new IndicatorOverIndicatorStrategyReal(shortSma, longSma);
+        Strategy ourStrategy = new IndicatorOverIndicatorStrategyFloat(shortSma, longSma);
 
 
         // Running our juicy trading strategy...
         List<Trade> trades = series.run(ourStrategy);
         System.out.println("Number of trades for our strategy: " + trades.size());
-        System.out.println(trades);
 
         // Analysis
 
         // Getting the cash flow of the resulting trades
-        CashFlowReal cashFlow = new CashFlowReal(series, trades);
+        CashFlowFloat cashFlow = new CashFlowFloat(series, trades);
 
         // Getting the profitable trades ratio
-        AnalysisCriterionReal profitTradesRatio = new AverageProfitableTradesCriterionReal();
+        AnalysisCriterionFloat profitTradesRatio = new AverageProfitableTradesCriterionFloat();
         System.out.println("Profitable trades ratio: " + profitTradesRatio.calculate(series, trades));
         // Getting the reward-risk ratio
-        AnalysisCriterionReal rewardRiskRatio = new RewardRiskRatioCriterionReal();
+        AnalysisCriterionFloat rewardRiskRatio = new RewardRiskRatioCriterionFloat();
         System.out.println("Reward-risk ratio: " + rewardRiskRatio.calculate(series, trades));
 
         // Total profit of our strategy
         // vs total profit of a buy-and-hold strategy
-        AnalysisCriterionReal vsBuyAndHold = new VersusBuyAndHoldCriterionReal(new TotalProfitCriterionReal());
+        AnalysisCriterionFloat vsBuyAndHold = new VersusBuyAndHoldCriterionFloat(new TotalProfitCriterionFloat());
         System.out.println("Our profit vs buy-and-hold profit: " + vsBuyAndHold.calculate(series, trades));
 
         // Your turn!
         System.out.println("Time: " + (System.currentTimeMillis() - time));
-
     }
 }

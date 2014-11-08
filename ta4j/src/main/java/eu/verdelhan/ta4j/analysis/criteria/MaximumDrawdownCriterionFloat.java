@@ -22,10 +22,10 @@
  */
 package eu.verdelhan.ta4j.analysis.criteria;
 
-import eu.verdelhan.ta4j.TimeSeriesReal;
+import eu.verdelhan.ta4j.TimeSeriesFloat;
 import eu.verdelhan.ta4j.Trade;
-import eu.verdelhan.ta4j.analysis.CashFlowReal;
-import org.jscience.mathematics.number.Real;
+import eu.verdelhan.ta4j.analysis.CashFlowFloat;
+import org.apfloat.Apfloat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,22 +35,22 @@ import java.util.List;
  * <p>
  * @see <a href="http://en.wikipedia.org/wiki/Drawdown_%28economics%29">http://en.wikipedia.org/wiki/Drawdown_%28economics%29</a>
  */
-public class MaximumDrawdownCriterionReal extends AbstractAnalysisCriterionReal {
+public class MaximumDrawdownCriterionFloat extends AbstractAnalysisCriterionFloat {
 
     @Override
-    public double calculate(TimeSeriesReal series, List<Trade> trades) {
-        Real maximumDrawdown = Real.ZERO;
-        Real maxPeak = Real.ZERO;
-        CashFlowReal cashFlow = new CashFlowReal(series, trades);
+    public double calculate(TimeSeriesFloat series, List<Trade> trades) {
+        Apfloat maximumDrawdown = Apfloat.ZERO;
+        Apfloat maxPeak = Apfloat.ZERO;
+        CashFlowFloat cashFlow = new CashFlowFloat(series, trades);
 
         for (int i = series.getBegin(); i <= series.getEnd(); i++) {
-            Real value = cashFlow.getValue(i);
-            if (value.isGreaterThan(maxPeak)) {
+            Apfloat value = cashFlow.getValue(i);
+            if (value.compareTo(maxPeak) == 1) {
                 maxPeak = value;
             }
 
-            Real drawdown = maxPeak.minus(value).divide(maxPeak);
-            if (drawdown.isGreaterThan(maximumDrawdown)) {
+            Apfloat drawdown = maxPeak.subtract(value).divide(maxPeak);
+            if (drawdown.compareTo(maximumDrawdown) == 1) {
                 maximumDrawdown = drawdown;
                 // absolute maximumDrawdown.
                 // should it be maximumDrawdown = drawDown/maxPeak ?
@@ -60,7 +60,7 @@ public class MaximumDrawdownCriterionReal extends AbstractAnalysisCriterionReal 
     }
 
     @Override
-    public double calculate(TimeSeriesReal series, Trade trade) {
+    public double calculate(TimeSeriesFloat series, Trade trade) {
         List<Trade> trades = new ArrayList<Trade>();
         trades.add(trade);
         return calculate(series, trades);
@@ -68,6 +68,6 @@ public class MaximumDrawdownCriterionReal extends AbstractAnalysisCriterionReal 
 
     @Override
     public boolean betterThan(double criterionValue1, double criterionValue2) {
-        return criterionValue1 > criterionValue2;
+        return criterionValue1 < criterionValue2;
     }
 }
