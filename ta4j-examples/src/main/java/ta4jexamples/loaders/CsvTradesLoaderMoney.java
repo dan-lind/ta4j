@@ -23,11 +23,12 @@
 package ta4jexamples.loaders;
 
 import au.com.bytecode.opencsv.CSVReader;
-import eu.verdelhan.ta4j.TickReal;
-import eu.verdelhan.ta4j.TimeSeriesReal;
+import eu.verdelhan.ta4j.Tick;
+import eu.verdelhan.ta4j.TickMoney;
+import eu.verdelhan.ta4j.TimeSeries;
+import eu.verdelhan.ta4j.TimeSeriesMoney;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
-import org.jscience.mathematics.number.Real;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,15 +42,15 @@ import java.util.logging.Logger;
 /**
  * This class build a Ta4j time series from a CSV file containing trades.
  */
-public class CsvTradesLoaderReal {
+public class CsvTradesLoaderMoney {
 
     /**
      * @return a time series from Bitstamp (bitcoin exchange) trades
      */
-    public static TimeSeriesReal loadBitstampSeries() {
+    public static TimeSeriesMoney loadBitstampSeries() {
 
         // Reading all lines of the CSV file
-        InputStream stream = CsvTradesLoaderReal.class.getClassLoader().getResourceAsStream("bitstamp_trades_from_20131125_usd.csv");
+        InputStream stream = CsvTradesLoaderMoney.class.getClassLoader().getResourceAsStream("bitstamp_trades_from_20131125_usd.csv");
         CSVReader csvReader = null;
         List<String[]> lines = null;
         try {
@@ -57,7 +58,7 @@ public class CsvTradesLoaderReal {
             lines = csvReader.readAll();
             lines.remove(0); // Removing header line
         } catch (IOException ioe) {
-            Logger.getLogger(CsvTradesLoaderReal.class.getName()).log(Level.SEVERE, "Unable to load trades from CSV", ioe);
+            Logger.getLogger(CsvTradesLoaderMoney.class.getName()).log(Level.SEVERE, "Unable to load trades from CSV", ioe);
         } finally {
             if (csvReader != null) {
                 try {
@@ -67,7 +68,7 @@ public class CsvTradesLoaderReal {
             }
         }
 
-        List<TickReal> ticks = null;
+        List<TickMoney> ticks = null;
         if ((lines != null) && !lines.isEmpty()) {
 
             // Getting the first and last trades timestamps
@@ -84,10 +85,10 @@ public class CsvTradesLoaderReal {
             // Filling the ticks with trades
             for (String[] tradeLine : lines) {
                 DateTime tradeTimestamp = new DateTime(Long.parseLong(tradeLine[0]) * 1000);
-                for (TickReal tick : ticks) {
+                for (TickMoney tick : ticks) {
                     if (tick.inPeriod(tradeTimestamp)) {
-                        Real tradePrice = Real.valueOf(tradeLine[1]);
-                        Real tradeAmount = Real.valueOf(tradeLine[2]);
+                        double tradePrice = Double.parseDouble(tradeLine[1]);
+                        double tradeAmount = Double.parseDouble(tradeLine[2]);
                         tick.addTrade(tradeAmount, tradePrice);
                     }
                 }
@@ -96,7 +97,7 @@ public class CsvTradesLoaderReal {
             removeEmptyTicks(ticks);
         }
 
-        return new TimeSeriesReal("bitstamp_trades", ticks);
+        return new TimeSeriesMoney("bitstamp_trades", ticks);
     }
 
     /**
@@ -106,15 +107,15 @@ public class CsvTradesLoaderReal {
      * @param duration the tick duration (in seconds)
      * @return the list of empty ticks
      */
-    private static List<TickReal> buildEmptyTicks(DateTime beginTime, DateTime endTime, int duration) {
+    private static List<TickMoney> buildEmptyTicks(DateTime beginTime, DateTime endTime, int duration) {
 
-        List<TickReal> emptyTicks = new ArrayList<TickReal>();
+        List<TickMoney> emptyTicks = new ArrayList<TickMoney>();
 
         DateTime tickBeginTime = beginTime;
         DateTime tickEndTime;
         do {
             tickEndTime = tickBeginTime.plusSeconds(duration);
-            emptyTicks.add(new TickReal(tickBeginTime, tickEndTime));
+            emptyTicks.add(new TickMoney(tickBeginTime, tickEndTime));
             tickBeginTime = tickEndTime;
         } while (tickEndTime.isBefore(endTime));
 
@@ -125,7 +126,7 @@ public class CsvTradesLoaderReal {
      * Removes all empty (i.e. with no trade) ticks of the list.
      * @param ticks a list of ticks
      */
-    private static void removeEmptyTicks(List<TickReal> ticks) {
+    private static void removeEmptyTicks(List<TickMoney> ticks) {
         for (int i = ticks.size() - 1; i >= 0; i--) {
             if (ticks.get(i).getTrades() == 0) {
                 ticks.remove(i);
@@ -134,7 +135,7 @@ public class CsvTradesLoaderReal {
     }
 
     public static void main(String args[]) {
-        TimeSeriesReal series = CsvTradesLoaderReal.loadBitstampSeries();
+        TimeSeriesMoney series = CsvTradesLoaderMoney.loadBitstampSeries();
 
         System.out.println("Series: " + series.getName() + " (" + series.getPeriodName() + ")");
         System.out.println("Number of ticks: " + series.getSize());

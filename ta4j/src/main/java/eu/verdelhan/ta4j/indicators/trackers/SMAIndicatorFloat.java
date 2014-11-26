@@ -49,7 +49,7 @@ public class SMAIndicatorFloat extends CachedIndicator<Apfloat> {
         }
 
         final int realTimeFrame = Math.min(timeFrame, index + 1);
-        return sum.divide(new Apfloat(realTimeFrame));
+        return sum.divide(new Apfloat(realTimeFrame,12));
     }
 
     @Override

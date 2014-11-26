@@ -23,7 +23,8 @@
 package eu.verdelhan.ta4j.strategies;
 
 import eu.verdelhan.ta4j.Indicator;
-import org.apfloat.Apfloat;
+import eu.verdelhan.ta4j.TADecimal;
+import eu.verdelhan.ta4j.money.Money;
 
 /**
  * Indicator over indicator strategy.
@@ -31,33 +32,32 @@ import org.apfloat.Apfloat;
  * Enter: when the value of the first {@link eu.verdelhan.ta4j.Indicator indicator} is strictly greater than the value of the second one<br>
  * Exit: when the value of the first {@link eu.verdelhan.ta4j.Indicator indicator} is strictly lesser than the value of the second one
  */
-public class IndicatorOverIndicatorStrategyFloat extends AbstractStrategy {
+public class IndicatorOverIndicatorStrategyMoney extends AbstractStrategy {
 
     /** The first indicator */
-    private Indicator<Apfloat> first;
+    private Indicator<Money> first;
     /** The second indicator */
-    private Indicator<Apfloat> second;
+    private Indicator<Money> second;
 
     /**
      * Constructor.
      * @param first the first indicator
      * @param second the second indicator
      */
-    public IndicatorOverIndicatorStrategyFloat(Indicator<Apfloat> first, Indicator<Apfloat> second) {
+    public IndicatorOverIndicatorStrategyMoney(Indicator<Money> first, Indicator<Money> second) {
         this.first = first;
         this.second = second;
     }
 
     @Override
-    public boolean shouldEnter(int index)
-    {
-        System.out.format("Index: %s, Value1: %s, Value2: %s, Should enter: %s%n",index, first.getValue(index), second.getValue(index), first.getValue(index).compareTo(second.getValue(index)) == 1);
+    public boolean shouldEnter(int index) {
+//        System.out.format("Index: %s, Value1: %s, Value2: %s, Should enter: %s%n",index, first.getValue(index), second.getValue(index), first.getValue(index).compareTo(second.getValue(index)) == 1);
         return first.getValue(index).compareTo(second.getValue(index)) == 1;
     }
 
     @Override
     public boolean shouldExit(int index) {
-        System.out.format("Index: %s, Value1: %s, Value2: %s, Should exit: %s%n",index, first.getValue(index), second.getValue(index), first.getValue(index).compareTo(second.getValue(index)) == -1);
+//        System.out.format("Index: %s, Value1: %s, Value2: %s, Should exit: %s%n",index, first.getValue(index), second.getValue(index), first.getValue(index).compareTo(second.getValue(index)) == -1);
         return first.getValue(index).compareTo(second.getValue(index)) == -1;
     }
 

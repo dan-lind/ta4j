@@ -48,8 +48,11 @@ public class SMAIndicatorReal extends CachedIndicator<Real> {
             sum = sum.plus(indicator.getValue(i));
         }
 
+
         final int realTimeFrame = Math.min(timeFrame, index + 1);
-        return sum.divide(Real.valueOf(realTimeFrame));
+        Real test = sum.divide(Real.valueOf(realTimeFrame));
+        Real test2 = Real.valueOf(realTimeFrame);
+        return test;
     }
 
     @Override

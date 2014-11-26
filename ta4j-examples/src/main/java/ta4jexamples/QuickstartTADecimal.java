@@ -34,6 +34,7 @@ import eu.verdelhan.ta4j.indicators.trackers.TripleEMAIndicator;
 import eu.verdelhan.ta4j.strategies.IndicatorOverIndicatorStrategy;
 import ta4jexamples.loaders.CsvTradesLoader;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -62,12 +63,35 @@ public class QuickstartTADecimal {
 
         // Getting the simple moving average (SMA) of the close price over the last 5 ticks
         TripleEMAIndicator shortSma = new TripleEMAIndicator(closePrice, 5);
-        // Here is the 5-ticks-SMA value at the 42nd index
-        System.out.println("5-ticks-SMA value at the 42nd index: " + shortSma.getValue(42));
+//        // Here is the 5-ticks-SMA value at the 42nd index
+//
+////
+//        // Getting a longer SMA (e.g. over the 30 last ticks)
+        TripleEMAIndicator longSma = new TripleEMAIndicator(closePrice, 30);
 
-        // Getting a longer SMA (e.g. over the 30 last ticks)
-        SMAIndicator longSma = new SMAIndicator(closePrice, 30);
+//        List<Strategy> strats = new ArrayList<Strategy>();
+//
+//
+//        for (int i = 5; i < 25; i++) {
+//            for (int j = 5; j < 100; j++) {
+//                SMAIndicator indicatorFloatShort = new SMAIndicator(closePrice,i);
+//                SMAIndicator indicatorFloatLong = new SMAIndicator(closePrice,j);
+//                Strategy ourStrategy = new IndicatorOverIndicatorStrategy(indicatorFloatShort, indicatorFloatLong);
+//                strats.add(ourStrategy);
+//            }
+//        }
 
+
+        // Ok, now let's building our trading strategy!
+//        List<Trade> trades = null;
+//        // Initial strategy:
+//        //  - Buy when 5-ticks SMA crosses over 30-ticks SMA
+//        //  - Sell when 5-ticks SMA crosses under 30-ticks SMA
+//        System.out.println(strats.size());
+//
+//        for (Strategy strat : strats) {
+//            trades = series.run(strat);
+//        }
 
         // Ok, now let's building our trading strategy!
 

@@ -23,42 +23,42 @@
 package eu.verdelhan.ta4j.indicators.trackers;
 
 import eu.verdelhan.ta4j.Indicator;
+import eu.verdelhan.ta4j.TADecimal;
 import eu.verdelhan.ta4j.indicators.CachedIndicator;
-import org.apfloat.Apfloat;
+import eu.verdelhan.ta4j.money.Money;
+import eu.verdelhan.ta4j.money.MoneyFactory;
 
 /**
  * Exponential moving average indicator.
  * <p>
  */
-public class EMAIndicatorFloat extends CachedIndicator<Apfloat> {
+public class EMAIndicatorMoney extends CachedIndicator<Money> {
 
-    private final Indicator<? extends Apfloat> indicator;
-
-    private static int count = 0;
+    private final Indicator<? extends Money> indicator;
 
     private final int timeFrame;
 
-    public EMAIndicatorFloat(Indicator<? extends Apfloat> indicator, int timeFrame) {
+    public EMAIndicatorMoney(Indicator<? extends Money> indicator, int timeFrame) {
         this.indicator = indicator;
         this.timeFrame = timeFrame;
     }
 
-    private Apfloat multiplier() {
-        Apfloat test = new Apfloat(3,12).divide(new Apfloat(timeFrame + 1));
+    private Money multiplier() {
+        Money test = MoneyFactory.fromDouble(3).divide((long)(timeFrame + 1),15);
         return test;
     }
 
 
     @Override
-    protected Apfloat calculate(int index) {
+    protected Money calculate(int index) {
         if (index + 1 < timeFrame) {
-            return new SMAIndicatorFloat(indicator, timeFrame).getValue(index);
+            return new SMAIndicatorMoney(indicator, timeFrame).getValue(index);
         }
         if(index == 0) {
             return indicator.getValue(0);
         }
-        Apfloat emaPrev = getValue(index - 1);
-        Apfloat test = indicator.getValue(index).subtract(emaPrev).multiply(multiplier()).add(emaPrev);
+        Money emaPrev = getValue(index - 1);
+        Money test = indicator.getValue(index).subtract(emaPrev).multiply(multiplier().toDouble()).add(emaPrev);
 //        System.out.format("Index value: %s, emaPrev: %s, multiplier: %s, result: %s%n",indicator.getValue(index),emaPrev, multiplier(),test);
         return test;
     }

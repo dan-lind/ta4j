@@ -22,18 +22,20 @@
  */
 package ta4jexamples;
 
-import eu.verdelhan.ta4j.AnalysisCriterionFloat;
-import eu.verdelhan.ta4j.Strategy;
-import eu.verdelhan.ta4j.TimeSeriesFloat;
-import eu.verdelhan.ta4j.Trade;
-import eu.verdelhan.ta4j.analysis.CashFlowFloat;
+import eu.verdelhan.ta4j.*;
+import eu.verdelhan.ta4j.analysis.CashFlow;
+import eu.verdelhan.ta4j.analysis.CashFlowMoney;
 import eu.verdelhan.ta4j.analysis.criteria.*;
-import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicatorFloat;
-import eu.verdelhan.ta4j.indicators.trackers.SMAIndicatorFloat;
-import eu.verdelhan.ta4j.indicators.trackers.TripleEMAIndicatorFloat;
-import eu.verdelhan.ta4j.strategies.IndicatorOverIndicatorStrategyFloat;
-import org.apfloat.Apfloat;
-import ta4jexamples.loaders.CsvTradesLoaderFloat;
+import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
+import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicatorMoney;
+import eu.verdelhan.ta4j.indicators.trackers.SMAIndicator;
+import eu.verdelhan.ta4j.indicators.trackers.SMAIndicatorMoney;
+import eu.verdelhan.ta4j.indicators.trackers.TripleEMAIndicatorMoney;
+import eu.verdelhan.ta4j.money.Money;
+import eu.verdelhan.ta4j.strategies.IndicatorOverIndicatorStrategy;
+import eu.verdelhan.ta4j.strategies.IndicatorOverIndicatorStrategyMoney;
+import ta4jexamples.loaders.CsvTradesLoader;
+import ta4jexamples.loaders.CsvTradesLoaderMoney;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,31 +45,34 @@ import java.util.List;
  * <p>
  * Global example.
  */
-public class QuickstartFloat {
+public class QuickstartMoney {
 
     public static void main(String[] args) {
-        System.out.println("Running Apfloat");
+        System.out.println("Running Money");
         long time = System.currentTimeMillis();
 
 
         // Getting a time series (from any provider: CSV, web service, etc.)
-        TimeSeriesFloat series = CsvTradesLoaderFloat.loadBitstampSeries();
+        TimeSeriesMoney series = CsvTradesLoaderMoney.loadBitstampSeries();
 
 
         // Getting the close price of the ticks
-        Apfloat firstClosePrice = series.getTickFloat(0).getClosePrice();
+        Money firstClosePrice = series.getTick(0).getClosePrice();
         System.out.println("First close price: " + firstClosePrice);
         // Or within an indicator:
-        ClosePriceIndicatorFloat closePrice = new ClosePriceIndicatorFloat(series);
+        ClosePriceIndicatorMoney closePrice = new ClosePriceIndicatorMoney(series);
         // Here is the same close price:
         System.out.println(firstClosePrice.equals(closePrice.getValue(0))); // equal to firstClosePrice
 
+
+
 //        Getting the simple moving average (SMA) of the close price over the last 5 ticks
-        TripleEMAIndicatorFloat shortSma = new TripleEMAIndicatorFloat(closePrice, 5);
+        TripleEMAIndicatorMoney shortSma = new TripleEMAIndicatorMoney(closePrice, 5);
         // Here is the 5-ticks-SMA value at the 42nd index
 
+//
         // Getting a longer SMA (e.g. over the 30 last ticks)
-        TripleEMAIndicatorFloat longSma = new TripleEMAIndicatorFloat(closePrice, 30);
+        TripleEMAIndicatorMoney longSma = new TripleEMAIndicatorMoney(closePrice, 30);
 
         System.out.println("5-ticks-SMA value at the 42nd index: " + shortSma.getValue(10));
 
@@ -76,15 +81,17 @@ public class QuickstartFloat {
 //
 //        for (int i = 5; i < 25; i++) {
 //            for (int j = 5; j < 100; j++) {
-//                SMAIndicatorFloat indicatorFloatShort = new SMAIndicatorFloat(closePrice,i);
-//                SMAIndicatorFloat indicatorFloatLong = new SMAIndicatorFloat(closePrice,j);
-//                Strategy ourStrategy = new IndicatorOverIndicatorStrategyFloat(indicatorFloatShort, indicatorFloatLong);
+//                SMAIndicatorMoney indicatorFloatShort = new SMAIndicatorMoney(closePrice,i);
+//                SMAIndicatorMoney indicatorFloatLong = new SMAIndicatorMoney(closePrice,j);
+//                Strategy ourStrategy = new IndicatorOverIndicatorStrategyMoney(indicatorFloatShort, indicatorFloatLong);
 //                strats.add(ourStrategy);
 //            }
 //        }
 
 
-        // Ok, now let's building our trading strategy!
+
+//
+//        // Ok, now let's building our trading strategy!
 //        List<Trade> trades = null;
 //        // Initial strategy:
 //        //  - Buy when 5-ticks SMA crosses over 30-ticks SMA
@@ -94,12 +101,17 @@ public class QuickstartFloat {
 //        for (Strategy strat : strats) {
 //            trades = series.run(strat);
 //        }
-//
-                Strategy ourStrategy = new IndicatorOverIndicatorStrategyFloat(shortSma, longSma);
-//
-//
-//
-//
+
+        // Ok, now let's building our trading strategy!
+
+        // Initial strategy:
+        //  - Buy when 5-ticks SMA crosses over 30-ticks SMA
+        //  - Sell when 5-ticks SMA crosses under 30-ticks SMA
+        Strategy ourStrategy = new IndicatorOverIndicatorStrategyMoney(shortSma, longSma);
+
+//        System.out.println(shortSma.getValue(series.getSize()-1));
+//        System.out.println(longSma.getValue(series.getSize()-1));
+
         // Running our juicy trading strategy...
         List<Trade> trades = series.run(ourStrategy);
         System.out.println("Number of trades for our strategy: " + trades.size());
@@ -109,18 +121,18 @@ public class QuickstartFloat {
         // Analysis
 
         // Getting the cash flow of the resulting trades
-        CashFlowFloat cashFlow = new CashFlowFloat(series, trades);
+        CashFlowMoney cashFlow = new CashFlowMoney(series, trades);
 
         // Getting the profitable trades ratio
-        AnalysisCriterionFloat profitTradesRatio = new AverageProfitableTradesCriterionFloat();
+        AnalysisCriterionMoney profitTradesRatio = new AverageProfitableTradesCriterionMoney();
         System.out.println("Profitable trades ratio: " + profitTradesRatio.calculate(series, trades));
         // Getting the reward-risk ratio
-        AnalysisCriterionFloat rewardRiskRatio = new RewardRiskRatioCriterionFloat();
+        AnalysisCriterionMoney rewardRiskRatio = new RewardRiskRatioCriterionMoney();
         System.out.println("Reward-risk ratio: " + rewardRiskRatio.calculate(series, trades));
 
         // Total profit of our strategy
         // vs total profit of a buy-and-hold strategy
-        AnalysisCriterionFloat vsBuyAndHold = new VersusBuyAndHoldCriterionFloat(new TotalProfitCriterionFloat());
+        AnalysisCriterionMoney vsBuyAndHold = new VersusBuyAndHoldCriterionMoney(new TotalProfitCriterionMoney());
         System.out.println("Our profit vs buy-and-hold profit: " + vsBuyAndHold.calculate(series, trades));
 
         // Your turn!

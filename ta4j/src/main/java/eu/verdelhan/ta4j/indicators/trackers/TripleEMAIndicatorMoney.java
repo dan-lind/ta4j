@@ -23,48 +23,32 @@
 package eu.verdelhan.ta4j.indicators.trackers;
 
 import eu.verdelhan.ta4j.Indicator;
+import eu.verdelhan.ta4j.TADecimal;
 import eu.verdelhan.ta4j.indicators.CachedIndicator;
-import org.apfloat.Apfloat;
+import eu.verdelhan.ta4j.money.Money;
+import eu.verdelhan.ta4j.money.MoneyFactory;
 
 /**
- * Exponential moving average indicator.
+ * Triple exponential moving average indicator.
  * <p>
+ * a.k.a TRIX
  */
-public class EMAIndicatorFloat extends CachedIndicator<Apfloat> {
-
-    private final Indicator<? extends Apfloat> indicator;
-
-    private static int count = 0;
+public class TripleEMAIndicatorMoney extends CachedIndicator<Money> {
 
     private final int timeFrame;
 
-    public EMAIndicatorFloat(Indicator<? extends Apfloat> indicator, int timeFrame) {
-        this.indicator = indicator;
+    private final EMAIndicatorMoney ema;
+
+    public TripleEMAIndicatorMoney(Indicator<? extends Money> indicator, int timeFrame) {
         this.timeFrame = timeFrame;
-    }
-
-    private Apfloat multiplier() {
-        Apfloat test = new Apfloat(3,12).divide(new Apfloat(timeFrame + 1));
-        return test;
-    }
-
-
-    @Override
-    protected Apfloat calculate(int index) {
-        if (index + 1 < timeFrame) {
-            return new SMAIndicatorFloat(indicator, timeFrame).getValue(index);
-        }
-        if(index == 0) {
-            return indicator.getValue(0);
-        }
-        Apfloat emaPrev = getValue(index - 1);
-        Apfloat test = indicator.getValue(index).subtract(emaPrev).multiply(multiplier()).add(emaPrev);
-//        System.out.format("Index value: %s, emaPrev: %s, multiplier: %s, result: %s%n",indicator.getValue(index),emaPrev, multiplier(),test);
-        return test;
+        this.ema = new EMAIndicatorMoney(indicator, timeFrame);
     }
 
     @Override
-    public String toString() {
-        return getClass().getSimpleName() + " timeFrame: " + timeFrame;
+    protected Money calculate(int index) {
+        EMAIndicatorMoney emaEma = new EMAIndicatorMoney(ema, timeFrame);
+        EMAIndicatorMoney emaEmaEma = new EMAIndicatorMoney(emaEma, timeFrame);
+        return MoneyFactory.fromDouble(3).multiply(ema.getValue(index).subtract(emaEma.getValue(index)).toDouble()).add(emaEmaEma.getValue(index));
+
     }
 }

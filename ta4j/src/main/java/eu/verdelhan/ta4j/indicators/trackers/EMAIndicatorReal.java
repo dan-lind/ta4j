@@ -42,7 +42,7 @@ public class EMAIndicatorReal extends CachedIndicator<Real> {
     }
 
     private Real multiplier() {
-        Real test = Real.valueOf(2).divide(Real.valueOf(timeFrame + 1));
+        Real test = Real.valueOf(3).divide(Real.valueOf(timeFrame + 1));
         return test;
     }
 
@@ -56,7 +56,7 @@ public class EMAIndicatorReal extends CachedIndicator<Real> {
             return indicator.getValue(0);
         }
         Real emaPrev = getValue(index - 1);
-        System.out.println(emaPrev);
+//        System.out.println(emaPrev);
         return indicator.getValue(index).minus(emaPrev).times(multiplier()).plus(emaPrev);
     }
 

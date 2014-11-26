@@ -23,48 +23,40 @@
 package eu.verdelhan.ta4j.indicators.trackers;
 
 import eu.verdelhan.ta4j.Indicator;
+import eu.verdelhan.ta4j.TADecimal;
 import eu.verdelhan.ta4j.indicators.CachedIndicator;
-import org.apfloat.Apfloat;
+import eu.verdelhan.ta4j.money.Money;
+import eu.verdelhan.ta4j.money.MoneyFactory;
 
 /**
- * Exponential moving average indicator.
+ * Simple moving average (SMA) indicator.
  * <p>
  */
-public class EMAIndicatorFloat extends CachedIndicator<Apfloat> {
+public class SMAIndicatorMoney extends CachedIndicator<Money> {
 
-    private final Indicator<? extends Apfloat> indicator;
-
-    private static int count = 0;
+    private final Indicator<? extends Money> indicator;
 
     private final int timeFrame;
 
-    public EMAIndicatorFloat(Indicator<? extends Apfloat> indicator, int timeFrame) {
+    public SMAIndicatorMoney(Indicator<? extends Money> indicator, int timeFrame) {
         this.indicator = indicator;
         this.timeFrame = timeFrame;
     }
 
-    private Apfloat multiplier() {
-        Apfloat test = new Apfloat(3,12).divide(new Apfloat(timeFrame + 1));
-        return test;
-    }
-
-
     @Override
-    protected Apfloat calculate(int index) {
-        if (index + 1 < timeFrame) {
-            return new SMAIndicatorFloat(indicator, timeFrame).getValue(index);
+    protected Money calculate(int index) {
+        Money sum = MoneyFactory.fromDouble(0);
+        for (int i = Math.max(0, index - timeFrame + 1); i <= index; i++) {
+            sum = sum.add(indicator.getValue(i));
         }
-        if(index == 0) {
-            return indicator.getValue(0);
-        }
-        Apfloat emaPrev = getValue(index - 1);
-        Apfloat test = indicator.getValue(index).subtract(emaPrev).multiply(multiplier()).add(emaPrev);
-//        System.out.format("Index value: %s, emaPrev: %s, multiplier: %s, result: %s%n",indicator.getValue(index),emaPrev, multiplier(),test);
-        return test;
+
+        final int realTimeFrame = Math.min(timeFrame, index + 1);
+        return sum.divide((long)realTimeFrame,15);
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + " timeFrame: " + timeFrame;
     }
+
 }

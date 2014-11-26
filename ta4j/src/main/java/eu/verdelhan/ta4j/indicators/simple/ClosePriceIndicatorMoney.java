@@ -20,51 +20,34 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package eu.verdelhan.ta4j.indicators.trackers;
+package eu.verdelhan.ta4j.indicators.simple;
 
-import eu.verdelhan.ta4j.Indicator;
+import eu.verdelhan.ta4j.TADecimal;
+import eu.verdelhan.ta4j.TimeSeries;
+import eu.verdelhan.ta4j.TimeSeriesMoney;
 import eu.verdelhan.ta4j.indicators.CachedIndicator;
-import org.apfloat.Apfloat;
+import eu.verdelhan.ta4j.money.Money;
 
 /**
- * Exponential moving average indicator.
+ * Close price indicator.
  * <p>
  */
-public class EMAIndicatorFloat extends CachedIndicator<Apfloat> {
+public class ClosePriceIndicatorMoney extends CachedIndicator<Money> {
 
-    private final Indicator<? extends Apfloat> indicator;
+    private TimeSeriesMoney data;
 
-    private static int count = 0;
-
-    private final int timeFrame;
-
-    public EMAIndicatorFloat(Indicator<? extends Apfloat> indicator, int timeFrame) {
-        this.indicator = indicator;
-        this.timeFrame = timeFrame;
+    public ClosePriceIndicatorMoney(TimeSeriesMoney data) {
+        this.data = data;
     }
-
-    private Apfloat multiplier() {
-        Apfloat test = new Apfloat(3,12).divide(new Apfloat(timeFrame + 1));
-        return test;
-    }
-
 
     @Override
-    protected Apfloat calculate(int index) {
-        if (index + 1 < timeFrame) {
-            return new SMAIndicatorFloat(indicator, timeFrame).getValue(index);
-        }
-        if(index == 0) {
-            return indicator.getValue(0);
-        }
-        Apfloat emaPrev = getValue(index - 1);
-        Apfloat test = indicator.getValue(index).subtract(emaPrev).multiply(multiplier()).add(emaPrev);
-//        System.out.format("Index value: %s, emaPrev: %s, multiplier: %s, result: %s%n",indicator.getValue(index),emaPrev, multiplier(),test);
-        return test;
+    protected Money calculate(int index) {
+        return data.getTick(index).getClosePrice();
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " timeFrame: " + timeFrame;
+        return getClass().getSimpleName();
     }
+
 }

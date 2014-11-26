@@ -23,30 +23,31 @@
 package eu.verdelhan.ta4j;
 
 
-import org.apfloat.Apfloat;
+import eu.verdelhan.ta4j.money.Money;
+import eu.verdelhan.ta4j.money.MoneyFactory;
 import org.joda.time.DateTime;
 
 /**
  * End tick of a period.
  * <p>
  */
-public class TickFloat {
+public class TickMoney {
 
     private DateTime beginTime;
 
     private DateTime endTime;
 
-    private Apfloat openPrice = null;
+    private Money openPrice = null;
 
-    private Apfloat closePrice = null;
+    private Money closePrice = null;
 
-    private Apfloat maxPrice = null;
+    private Money maxPrice = null;
 
-    private Apfloat minPrice = null;
+    private Money minPrice = null;
 
-    private Apfloat amount = Apfloat.ZERO;
+    private Money amount = MoneyFactory.fromDouble(0);
 
-    private Apfloat volume = Apfloat.ZERO;
+    private Money volume = MoneyFactory.fromDouble(0);
 
     private int trades = 0;
 
@@ -54,7 +55,7 @@ public class TickFloat {
      * @param beginTime the begin time of the tick period
      * @param endTime the end time of the tick period
      */
-    public TickFloat(DateTime beginTime, DateTime endTime) {
+    public TickMoney(DateTime beginTime, DateTime endTime) {
         this.beginTime = beginTime;
         this.endTime = endTime;
     }
@@ -67,12 +68,12 @@ public class TickFloat {
      * @param closePrice the close price of the tick period
      * @param volume the volume of the tick period
      */
-    public TickFloat(DateTime endTime, double openPrice, double highPrice, double lowPrice, double closePrice, double volume) {
-        this(endTime, new Apfloat(openPrice,15),
-                new Apfloat(highPrice,15),
-                new Apfloat(lowPrice,15),
-                new Apfloat(closePrice,15),
-                new Apfloat(volume,15));
+    public TickMoney(DateTime endTime, double openPrice, double highPrice, double lowPrice, double closePrice, double volume) {
+        this(endTime, MoneyFactory.fromDouble(openPrice),
+                MoneyFactory.fromDouble(highPrice),
+                MoneyFactory.fromDouble(lowPrice),
+                MoneyFactory.fromDouble(closePrice),
+                MoneyFactory.fromDouble(volume));
     }
 
     /**
@@ -83,7 +84,7 @@ public class TickFloat {
      * @param closePrice the close price of the tick period
      * @param volume the volume of the tick period
      */
-    public TickFloat(DateTime endTime, Apfloat openPrice, Apfloat highPrice, Apfloat lowPrice, Apfloat closePrice, Apfloat volume) {
+    public TickMoney(DateTime endTime, Money openPrice, Money highPrice, Money lowPrice, Money closePrice, Money volume) {
         this.endTime = endTime;
         this.openPrice = openPrice;
         this.maxPrice = highPrice;
@@ -95,14 +96,14 @@ public class TickFloat {
     /**
      * @return the close price of the period
      */
-    public Apfloat getClosePrice() {
+    public Money getClosePrice() {
         return closePrice;
     }
 
     /**
      * @return the open price of the period
      */
-    public Apfloat getOpenPrice() {
+    public Money getOpenPrice() {
         return openPrice;
     }
 
@@ -116,21 +117,21 @@ public class TickFloat {
     /**
      * @return the max price of the period
      */
-    public Apfloat getMaxPrice() {
+    public Money getMaxPrice() {
         return maxPrice;
     }
 
     /**
      * @return the whole traded amount of the period
      */
-    public Apfloat getAmount() {
+    public Money getAmount() {
         return amount;
     }
 
     /**
      * @return the whole traded volume in the period
      */
-    public Apfloat getVolume() {
+    public Money getVolume() {
         return volume;
     }
 
@@ -140,7 +141,7 @@ public class TickFloat {
      * @param tradePrice the price
      */
     public void addTrade(double tradeAmount, double tradePrice) {
-        addTrade(new Apfloat(tradeAmount,15), new Apfloat(tradePrice));
+        addTrade(MoneyFactory.fromDouble(tradeAmount), MoneyFactory.fromDouble(tradePrice));
     }
 
     /**
@@ -149,7 +150,7 @@ public class TickFloat {
      * @param tradePrice the price
      */
     public void addTrade(String tradeAmount, String tradePrice) {
-        addTrade(new Apfloat(tradeAmount,15), new Apfloat(tradePrice));
+        addTrade(MoneyFactory.fromString(tradeAmount), MoneyFactory.fromString(tradePrice));
     }
 
     /**
@@ -157,7 +158,7 @@ public class TickFloat {
      * @param tradeAmount the tradable amount
      * @param tradePrice the price
      */
-    public void addTrade(Apfloat tradeAmount, Apfloat tradePrice) {
+    public void addTrade(Money tradeAmount, Money tradePrice) {
         if (openPrice == null) {
             openPrice = tradePrice;
         }
@@ -166,22 +167,22 @@ public class TickFloat {
         if (maxPrice == null) {
             maxPrice = tradePrice;
         } else {
-            maxPrice = maxPrice.compareTo(tradePrice) == -1 ? tradePrice : maxPrice;
+            maxPrice = maxPrice.compareTo(tradePrice) == 1 ? tradePrice : maxPrice;
         }
         if (minPrice == null) {
             minPrice = tradePrice;
         } else {
-            minPrice = minPrice.compareTo(tradePrice) == 1 ? tradePrice : minPrice;
+            minPrice = minPrice.compareTo(tradePrice) == -1 ? tradePrice : minPrice;
         }
         amount = amount.add(tradeAmount);
-        volume = volume.add(tradeAmount.multiply(tradePrice));
+        volume = volume.add(tradeAmount.multiply(tradePrice.toDouble()));
         trades++;
     }
 
     /**
      * @return the min price of the period
      */
-    public Apfloat getMinPrice() {
+    public Money getMinPrice() {
         return minPrice;
     }
 

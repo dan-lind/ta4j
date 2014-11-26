@@ -20,32 +20,38 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package eu.verdelhan.ta4j.indicators.trackers;
+package eu.verdelhan.ta4j.analysis.criteria;
 
-import eu.verdelhan.ta4j.Indicator;
-import eu.verdelhan.ta4j.indicators.CachedIndicator;
-import org.apfloat.Apfloat;
+import eu.verdelhan.ta4j.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Triple exponential moving average indicator.
+ * Reward risk ratio criterion.
  * <p>
- * a.k.a TRIX
+ * (i.e. the {@link eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterion total profit} over the {@link eu.verdelhan.ta4j.analysis.criteria.MaximumDrawdownCriterion maximum drawdown}.
  */
-public class TripleEMAIndicatorFloat extends CachedIndicator<Apfloat> {
+public class RewardRiskRatioCriterionMoney extends AbstractAnalysisCriterionMoney {
 
-    private final int timeFrame;
+    private AnalysisCriterionMoney totalProfit = new TotalProfitCriterionMoney();
 
-    private final EMAIndicatorFloat ema;
+    private AnalysisCriterionMoney maxDrawdown = new MaximumDrawdownCriterionMoney();
 
-    public TripleEMAIndicatorFloat(Indicator<? extends Apfloat> indicator, int timeFrame) {
-        this.timeFrame = timeFrame;
-        this.ema = new EMAIndicatorFloat(indicator, timeFrame);
+    @Override
+    public double calculate(TimeSeriesMoney series, List<Trade> trades) {
+        return totalProfit.calculate(series, trades) / maxDrawdown.calculate(series, trades);
     }
 
     @Override
-    protected Apfloat calculate(int index) {
-        EMAIndicatorFloat emaEma = new EMAIndicatorFloat(ema, timeFrame);
-        EMAIndicatorFloat emaEmaEma = new EMAIndicatorFloat(emaEma, timeFrame);
-        return new Apfloat(3,12).multiply(ema.getValue(index).subtract(emaEma.getValue(index))).add(emaEmaEma.getValue(index));
+    public boolean betterThan(double criterionValue1, double criterionValue2) {
+        return criterionValue1 > criterionValue2;
+    }
+
+    @Override
+    public double calculate(TimeSeriesMoney series, Trade trade) {
+        List<Trade> trades = new ArrayList<Trade>();
+        trades.add(trade);
+        return calculate(series, trades);
     }
 }
